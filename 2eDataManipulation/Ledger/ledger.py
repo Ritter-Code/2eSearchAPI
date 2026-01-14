@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 def add_ledger_event(i_ledger, i_batch_id, i_entity_id, i_entity_type, i_entity_hash, i_state):
-    event_time = datetime.now(timezone.utc).strftime("%Y_%m_%d__%H_%M_%S")
+    event_time = datetime.now(timezone.utc)
     
     event_entry = {
         "ledger_id" : str(uuid.uuid4()),

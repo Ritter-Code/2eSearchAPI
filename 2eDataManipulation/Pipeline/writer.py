@@ -7,7 +7,7 @@ def batch_to_file(relational_dir, table_rows, relational_name, batch_id):
     table = pa.Table.from_pandas(pd.DataFrame(table_rows))
     relational_dir.mkdir(parents = True, exist_ok = True)
         
-    with pq.ParquetWriter(f"{relational_dir}/{batch_id}--{relational_name}", table.schema, use_dictionary = True) as writer:
+    with pq.ParquetWriter(f"{relational_dir}/{batch_id}--{relational_name}.parquet", table.schema, use_dictionary = True) as writer:
         writer.write_table(table)
 
 def write_ledger_file(i_ledger, i_metadata_dir, i_batch_id):
@@ -15,7 +15,7 @@ def write_ledger_file(i_ledger, i_metadata_dir, i_batch_id):
     event_dir = i_metadata_dir/"ledger"
     event_dir.mkdir(parents = True, exist_ok = True)
 
-    with pq.ParquetWriter(f"{event_dir}/Batch--{i_batch_id}", table.schema, use_dictionary = True) as writer:
+    with pq.ParquetWriter(f"{event_dir}/Batch--{i_batch_id}.parquet", table.schema, use_dictionary = True) as writer:
          writer.write_table(table)
 
 def write_master_table(i_master_table, i_master_parq_dir, i_batch_id):

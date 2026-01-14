@@ -8,6 +8,7 @@ from Pipeline.process_item import process_item_file
 from Pipeline.writer import write_master_table, write_ledger_file
 from datetime import datetime, timezone
 from Ledger.ledger import add_ledger_event
+from Ledger.pull_ledger import retrieve_processed_list
 
 def process_all(input_dir):
 
@@ -18,7 +19,8 @@ def process_all(input_dir):
 
     ledger_events = []
     processed_entities = []
-    batch_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    committed_ledger = retrieve_processed_list()
+    batch_id = datetime.now(timezone.utc)
 
     master_table = {
         type_name: {
@@ -50,7 +52,8 @@ def process_all(input_dir):
                 i_master_table = master_table,
                 i_ledger = ledger_events, 
                 i_processed_entities = processed_entities, 
-                i_batch_id = batch_id
+                i_batch_id = batch_id,
+                i_committed_ledger = committed_ledger
             )
 
             if new_record:

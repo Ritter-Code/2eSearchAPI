@@ -2,7 +2,7 @@ import orjson
 import hashlib
 from Ledger.ledger import add_ledger_event
 
-def process_item_file(i_file_path, i_extractor_registry, i_master_table, i_ledger, i_processed_entities, i_batch_id):
+def process_item_file(i_file_path, i_extractor_registry, i_master_table, i_ledger, i_processed_entities, i_batch_id , i_committed_ledger):
     with open(i_file_path, "rb") as file:
         raw_bytes = file.read()
         read_file = orjson.loads(raw_bytes)
@@ -16,6 +16,9 @@ def process_item_file(i_file_path, i_extractor_registry, i_master_table, i_ledge
         entity_hash = hashlib.sha256(raw_bytes).hexdigest()
         id_check = read_file['_id']
         type_check = read_file['type']
+        last_hash = i_committed_ledger.get((id_check, type_check))
+        if last_hash == entity_hash:
+            return False
         
 
         add_ledger_event(
@@ -52,6 +55,15 @@ def process_item_file(i_file_path, i_extractor_registry, i_master_table, i_ledge
                 "entity_type" : type_check,
                 "entity_hash" : entity_hash
             })
+
+            add_ledger_event(
+                i_ledger=i_ledger,
+                i_batch_id=i_batch_id,
+                i_entity_id=id_check,
+                i_entity_type=type_check,
+                i_entity_hash=entity_hash,
+                i_state="STAGED"
+            )
 
             return True
 

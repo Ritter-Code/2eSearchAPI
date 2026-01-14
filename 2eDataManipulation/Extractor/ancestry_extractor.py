@@ -52,10 +52,10 @@ class AncestryExtractor(BaseExtractor):
         if not isinstance(boost_block, dict):
             return results
 
-        for i, (_, boost) in enumerate(boost_block.items()):
+        idx = 0
+        for _, boost in boost_block.items():
             boost_stat = boost.get("value")
             if not boost_stat:
-                i -= 1
                 continue
             
             if len(boost_stat) > 1:
@@ -65,9 +65,11 @@ class AncestryExtractor(BaseExtractor):
 
             results.append({
                 "id" : self.id,
-                "boost_index" : i,
+                "boost_index" : idx,
                 "stat" : boost_value
             })
+
+            idx += 1
         
         return results
     

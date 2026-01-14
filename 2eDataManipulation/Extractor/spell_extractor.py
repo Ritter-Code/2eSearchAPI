@@ -19,11 +19,16 @@ class SpellExtractor(BaseExtractor):
         elif "focus" in traits:
             spell_type = "focus"
 
+        if "cantrip" in traits:
+            spell_level = 0
+        else:
+            spell_level = safe_int(self.retrieve("system", "level", "value"))
+
 
         return {
             "id" : self.id,
             "name" : self.retrieve("name"),
-            "level" : safe_int(self.retrieve("system", "level", "value")),
+            "level" : spell_level,
             "type" : spell_type,
             "rarity" : self.retrieve("system", "traits", "rarity")
         }
