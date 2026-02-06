@@ -1,3 +1,8 @@
+## Type registry for the different content types
+## Each is broken down into independent schema concerning their unique information categories
+
+# Currently Implemented: spell, ancestry
+
 TYPE_REGISTRY = {
         "ancestry" : {
             "main": {"kind" : "one"},
