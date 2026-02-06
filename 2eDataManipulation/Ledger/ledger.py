@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+## Create a ledger event with needed information for status check and id verification and add the the event registry
 def add_ledger_event(i_ledger, i_batch_id, i_entity_id, i_entity_type, i_entity_hash, i_state):
     event_time = datetime.now(timezone.utc)
     

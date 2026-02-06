@@ -3,6 +3,7 @@ from pathlib import Path
 
 ledger_dir = Path("2eDataManipulation/Content/metadata/ledger")
 
+## Used to import the stored ledger parquets, sort them by most recent entry, and decide if the file is committed, or still needs processed
 def retrieve_processed_list():
     ledger_parq = list(ledger_dir.glob("*.parquet"))
     if not ledger_parq:

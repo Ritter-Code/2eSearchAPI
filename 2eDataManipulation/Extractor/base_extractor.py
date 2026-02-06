@@ -1,15 +1,15 @@
 
-## -  Universal extractor method for use in subsequent extractors
+## Universal extractor method for use in extractors
 
 class BaseExtractor:
     
-    ## - Initialize with full json file, system nested data, and unique _id field
+    ## Initialize with full json file, and specifically call the _id and system information
     def __init__ (self, obj):
         self.obj = obj
         self.sys = obj.get("system", {})
         self.id = obj.get("_id")
 
-    ## - Getter method to retrieve data in nested json cleanly
+    ## Retrieve data in nested json cleanly
     def retrieve(self, *path):
 
         step = self.obj
