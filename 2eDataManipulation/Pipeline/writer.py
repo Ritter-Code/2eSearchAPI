@@ -5,7 +5,7 @@ from pathlib import Path
 
 ## Write the current selected batch of tables to a parquet based on the content type, schema, and batch id
 def batch_to_file(relational_dir, table_rows, relational_name, batch_id):
-    table = pa.Table.from_pandas(pd.DataFrame(table_rows))
+    table = pa.Table.from_pandas(pd.DataFrame(table_rows).convert_dtypes())
     relational_dir.mkdir(parents = True, exist_ok = True)
         
     with pq.ParquetWriter(f"{relational_dir}/{batch_id}--{relational_name}.parquet", table.schema, use_dictionary = True) as writer:
