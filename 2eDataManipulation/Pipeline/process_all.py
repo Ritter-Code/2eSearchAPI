@@ -25,7 +25,7 @@ def process_all(input_dir):
     committed_ledger = retrieve_processed_list()
 
     #Generate the current batch ID to record in the ledger
-    batch_id = datetime.now(timezone.utc)
+    batch_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S%f")
 
     # Create a mutable table to handle each of the content types/schema prepared in the schema registry (TYPE_REGISTRY)
     master_table = {

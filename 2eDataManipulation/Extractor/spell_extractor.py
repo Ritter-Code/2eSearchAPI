@@ -56,7 +56,7 @@ class SpellExtractor(BaseExtractor):
             "area_range" : safe_int(self.retrieve("system", "area", "value")),
             "save" : self.retrieve("system", "defense", "save", "statistic"),
             "basic" : self.retrieve("system", "defense", "save", "basic"),
-            "description" : self.retrieve("system", "description", "value")
+            "description" : self.clean_description(self.retrieve("system", "description", "value"))
         }
     
     def extract_damage(self):

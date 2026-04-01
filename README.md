@@ -1,97 +1,116 @@
 # 2eSearchAPI
-Designed and implemented a full ETL pipeline for 25k+ FoundryVTT PF2e JSON documents. Built a modular extractor architecture (class-based, auto-dispatched by item type) to normalize deeply nested and inconsistent JSON schemas into relational structures.
 
---- Overview ---
-This repository contains a proof of concept ETL pipeline for normalizing Pathfinder Second Edition data from the FoundryVTT system. Foundry stores PF2E content as deeply nested JSON intended for UI consumption rather than analytics or search. This project converts that data into relational, schema stable Parquet datasets suitable for querying and API backed search.
+A full ETL pipeline and REST API for Pathfinder Second Edition data sourced from FoundryVTT PF2e JSON documents. Normalizes deeply nested, inconsistently structured JSON into relational Parquet datasets and serves them via a FastAPI + DuckDB backend.
 
-The current implementation uses spells as the reference entity to validate the architecture and data model.
+---
 
---- Goals --- 
-- Normalize heterogeneous and inconsistently structured JSON into relational tables
-- Support incremental ingestion without reprocessing unchanged files
-- Isolate schema logic by entity type
-- Produce Parquet outputs suitable for analytics and FastAPI consumption
-- Provide a foundation for additional PF2E entity extractors
+## Overview
 
---- Architecture ---
-Extractor Framework
-Each PF2E entity type is parsed by a dedicated extractor class. All extractors inherit from a shared base extractor that provides:
+FoundryVTT stores PF2e content as deeply nested JSON intended for UI consumption rather than querying or search. This project converts that data into relational, schema-stable Parquet datasets and exposes them through a FastAPI search API.
+
+---
+
+## Architecture
+
+### Extractor Framework
+
+Each PF2e entity type is parsed by a dedicated extractor class implementing core functions for a base extractor class managing:
 - Safe nested JSON access
 - Consistent ID handling
-- A standard extract all interface
-Extractor selection is handled by a registry based dispatcher keyed on the JSON type field.
+- Description cleaning (strips HTML, Foundry roll commands, and UUID references)
+- A standard extract_all interface
 
---- Schema Normalization ---
-Ingested JSON data contains complex nested structures. Spell data structures include:
-- Damage blocks
-- Interval and level based heightening
-- Traits and traditions
-- Ritual specific fields
+Extractor selection is handled by a registry-based dispatcher referencing the 'type' field present in each significant file.
 
-The spell extractor expands these structures into the following relational tables:
-- main
-- meta
-- details
-- damage
-- heightening
-- heighten_interval
-- heighten_levels
-- heighten_level_damage
-- traits
-- traditions
-- ritual
-Each table is written as an independent Parquet file.
+Currently implemented: spell, ancestry
 
---- Incremental Ingestion ---
-The pipeline tracks processed file IDs using a persistent checklist. On subsequent runs:
-- Previously processed files are skipped
-- Only new or changed entries are parsed
-- Parquet tables are merged and deduplicated
-This reduces runtime by approximately 70 to 85 percent compared to full reprocessing.
+### Pipeline
 
---- Error Handling ---
-- All file reads are isolated
-- Schema access is defensive
-- Single file failures do not halt execution
-This allows ingestion to complete even with malformed or incomplete source files.
+The pipeline is fully idempotent. On each run it:
+1. Loads a committed ledger of previously processed files
+2. Skips any file whose content hash matches a committed entry
+3. Extracts and normalizes only new or changed files
+4. Writes outputs as Parquet files batched by run timestamp
+5. Records the result of every file (IN_PROGRESS, STAGED, COMMITTED, or FAILED) to a persistent ledger
 
---- Output Structure ---
-2e_master_parquet/
+### Schema Normalization
+
+Spell tables: main, meta, details, damage, heightening, heighten_interval, heighten_level, heighten_level_damage, traits, traditions, ritual
+
+Ancestry tables: main, meta, boosts, flaw, traits, languages, additional_languages, race_features
+
+Each table is written as an independent Parquet file under Content/{type}/{table}/.
+
+### API
+
+Built with FastAPI and DuckDB. On startup, DuckDB registers each Parquet file as an in-memory view, making all tables immediately queryable without loading data into memory upfront.
+
+Current endpoints:
+- GET /spells/ returns all spells with name, level, traditions, and truncated description
+
+---
+
+## Output Structure
+
+```
+Content/
   spell/
-    main.parquet
-    meta.parquet
-    details.parquet
-    damage.parquet
-    heightening.parquet
-    heighten_interval.parquet
-    heighten_levels.parquet
-    heighten_level_damage.parquet
-    traits.parquet
-    traditions.parquet
-    ritual.parquet
+    main/
+    meta/
+    details/
+    damage/
+    heightening/
+    heighten_interval/
+    heighten_level/
+    heighten_level_damage/
+    traits/
+    traditions/
+    ritual/
+  ancestry/
+    main/
+    meta/
+    boosts/
+    flaw/
+    traits/
+    languages/
+    additional_languages/
+    race_features/
   metadata/
-    id_checklist.pkl
+    ledger/
+```
 
---- Current Status ---
-- Spell extractor complete
-- Modular extractor framework complete
-- Incremental ingestion implemented
-- Parquet merge and deduplication in progress
-- Additional entity types planned
-This repository represents a working proof of concept rather than a finished production system.
+---
 
---- Planned Work ---
-- Implement additional entity extractors
-- Finalize Parquet merge strategy
-- Add FastAPI search endpoints
-- Integrate AI for complex querying
+## Current Status
 
---- Technologies ---
+- Spell and ancestry extractors complete
+- Idempotent pipeline with hash-based change detection and ledger tracking
+- Description artifact cleaning to remove for HTML, Foundry UUID references, roll commands, damage formulas, and area templates
+- FastAPI running with DuckDB view layer over Parquet files
+- Spell list endpoint functional
+
+## Planned Work
+
+- Additional entity extractors (feats, equipment, conditions, etc.)
+- Additional API endpoints (single spell lookup, search and filter)
+- Ancestry endpoints
+- AI-assisted querying
+
+---
+
+## Design Decisions
+
+Extraction Process: Early iterations normalized each entity type into a single wide dataframe. Processing times ballooned due to UUID reference expansion, and flattened tables created significant query complexity. Restructuring into relational tables with one-to-one and one-to-many relationships reduced processing from hours to minutes and made the data meaningfully queryable.
+
+Change Detection: A hash-based detection system combined with continuous ledger tracking prevents reprocessing already committed files. The content hash determines whether a file has changed since its last committed run, ensuring updated files are caught without reprocessing the entire dataset.
+
+DuckDB: DuckDB queries Parquet files directly without a maintained server, integrates cleanly with the existing pipeline, and handles the read-heavy workload efficiently.
+
+## Technologies
+
 - Python
+- FastAPI
+- DuckDB
+- PyArrow / Parquet
 - Pandas
 - Orjson
-- PyArrow
-- Parquet
-
---- Why This Project ---
-PF2E data is difficult to analyze due to deeply nested and inconsistent schemas. This pipeline provides a structured foundation for building search tools, analytics, and data driven reference systems on top of the FoundryVTT ecosystem.

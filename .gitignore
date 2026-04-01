@@ -1,1 +1,5 @@
 2e Datasets/*
+2eDataManipulation/searchAPI
+__pycache__/
+*.pyc
+temp_check.py
