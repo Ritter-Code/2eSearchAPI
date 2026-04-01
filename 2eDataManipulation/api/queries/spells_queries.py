@@ -2,11 +2,13 @@ from ..db.connection import conn
 from ..utils import df_to_records
 
 def get_spell_list_query():
-    spell_list = conn.execute(f"SELECT m.name, m.level, LIST(t.tradition) AS traditions, LEFT(d.description, 200) AS description FROM spell_main m JOIN spell_details d ON m.id = d.id LEFT JOIN spell_traditions t ON m.id = t.id GROUP BY m.name, m.level, d.description ORDER BY m.level").fetchdf()
+    spell_list = conn.execute(f"SELECT m.name, m.level, LIST(DISTINCT t.tradition) AS traditions, LIST(DISTINCT tr.trait) AS traits, LEFT(d.description, 200) AS description FROM spell_main m JOIN spell_details d ON m.id = d.id LEFT JOIN spell_traditions t ON m.id = t.id LEFT JOIN spell_traits tr ON m.id = tr.id GROUP BY m.name, m.level, d.description ORDER BY m.level").fetchdf()
     spell_list["traditions"] = spell_list["traditions"].apply(lambda x: list(x) if x is not None else [])
+    spell_list["traits"] = spell_list["traits"].apply(lambda x: list(x) if x is not None else [])
     return df_to_records(spell_list)
 
 def get_spell_info_query(name):
+
     ##Full Spell Data Query 
     ###Core Spell Info
     spell_core = conn.execute("""
@@ -60,3 +62,43 @@ def get_spell_info_query(name):
     }
     del result["id"]
     return result
+
+def get_spell_filter_query(level_min, level_max, tradition, trait, action):
+    conditions = []
+    params = []
+
+    if level_min is not None:
+        conditions.append("m.level >= ?")
+        params.append(level_min)
+
+    if level_max is not None:
+        conditions.append("m.level <= ?")
+        params.append(level_max)
+
+    if tradition is not None:
+        conditions.append("m.id IN (SELECT id FROM spell_traditions WHERE tradition = ?)")
+        params.append(tradition)
+
+    if trait is not None:
+        conditions.append("m.id IN (SELECT id FROM spell_traits WHERE trait = ?)")
+        params.append(trait)
+
+    if action is not None:
+        conditions.append("d.cast_time = ?")
+        params.append(action)
+
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    spell_list = conn.execute(f"""
+        SELECT m.name, m.level, LIST(DISTINCT t.tradition) AS traditions, LIST(DISTINCT tr.trait) AS traits, LEFT(d.description, 200) AS description
+        FROM spell_main m
+        JOIN spell_details d ON m.id = d.id
+        LEFT JOIN spell_traditions t ON m.id = t.id
+        LEFT JOIN spell_traits tr ON m.id = tr.id
+        {where_clause}
+        GROUP BY m.name, m.level, d.description ORDER BY m.level
+    """, params).fetchdf()
+
+    spell_list["traditions"] = spell_list["traditions"].apply(lambda x: list(x) if x is not None else [])
+    spell_list["traits"] = spell_list["traits"].apply(lambda x: list(x) if x is not None else [])
+    return df_to_records(spell_list)
