@@ -16,6 +16,8 @@ def df_to_records(df):
                 clean_row[k] = int(v)
             elif isinstance(v, np.bool_):
                 clean_row[k] = bool(v)
+            elif hasattr(v, '__iter__')  and not isinstance(v, (str, bytes)):
+                clean_row[k] = list(v)
             else:
                 clean_row[k] = v
         

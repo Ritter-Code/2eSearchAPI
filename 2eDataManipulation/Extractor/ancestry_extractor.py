@@ -16,7 +16,7 @@ class AncestryExtractor(BaseExtractor):
             "name" : self.retrieve("name"),
             "type" : "ancestry",
             "rarity" : self.retrieve("system", "traits", "rarity"),
-            "description" : self.retrieve("system", "description", "value"),
+            "description" : self.clean_description(self.retrieve("system", "description", "value")),
             "hp" : safe_int(self.retrieve("system", "hp")),
             "reach" : safe_int(self.retrieve("system", "reach")),
             "size" : self.retrieve("system", "size"),

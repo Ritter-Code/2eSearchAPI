@@ -1,21 +1,23 @@
 from git import Repo
 import os
 
-# -- Target the directory for the 2e Data Repo
+# Target the directory for the 2e Data Repo
 rd = "2e Datasets"
 
-# -- Either clone from scratch or update. Only deal with files listed in the 'packs' subfolder
+# Either clone from scratch or update. Only deal with files listed in the 'packs' subfolder
 if not os.path.exists(rd):
-    repo = Repo.clone_from("https://github.com/foundryvtt/pf2e.git", rd, no_checkout = True, branch="release")
+    repo = Repo.clone_from("https://github.com/foundryvtt/pf2e.git", rd, no_checkout = True, branch="v13-dev")
     print(f"Creating directory from Foundry VTT Repo")
 else:
     repo = Repo(rd)
+    repo.remotes.origin.fetch()
+    repo.git.reset('--hard', 'origin/v13-dev')
     print(f"Updating directory from Foundry VTT Repo")
 
 
 git_cmd = repo.git
 git_cmd.sparse_checkout('init', '--cone')
 git_cmd.sparse_checkout('set', 'packs')
-git_cmd.checkout('release')
+git_cmd.checkout('v13-dev')
 
 print(f"File directory complete and ready for use")

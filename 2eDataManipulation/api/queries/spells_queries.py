@@ -22,7 +22,9 @@ def get_spell_info_query(name):
         GROUP BY m.id, m.name, m.level, m.type, m.rarity, d.cast_time, d.cost, d.range, d.area_type, d.area_range, d.targets, d.duration, d.sustained, d.save, d.basic, d.description
     """, [name]).fetchdf()
 
-    spell_id = spell_core["id"][0]
+    if spell_core.empty:
+        raise IndexError(f"Spell '{name}' not found")
+    spell_id = spell_core["id"].iloc[0]
 
     spell_damage = conn.execute("""
         SELECT damage_index, damage, damage_type, persistent, mod
