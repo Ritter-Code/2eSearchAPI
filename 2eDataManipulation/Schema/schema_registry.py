@@ -1,7 +1,7 @@
 ## Type registry for the different content types
 ## Each is broken down into independent schema concerning their unique information categories
 
-# Currently Implemented: spell, ancestry
+# Currently Implemented: spell, ancestry, feat
 
 TYPE_REGISTRY = {
         "ancestry" : {
@@ -13,6 +13,13 @@ TYPE_REGISTRY = {
             "languages":{"kind" : "many"},
             "additional_languages": {"kind" : "many"},
             "race_features": {"kind" : "many"}
+        },
+        "feat" : {
+            "main": {"kind": "one"},
+            "meta": {"kind": "one"},
+            "details": {"kind": "one"},
+            "traits": {"kind": "many"},
+            "prerequisites": {"kind": "many"}
         },
         "spell" : {
             "main" : {"kind" : "one"},

@@ -2,7 +2,7 @@ from pathlib import Path
 from .connection import conn
 
 def register_views():
-    type_list = ["spell", "ancestry"]
+    type_list = ["spell", "ancestry", "feat"]
 
     for type in type_list:
         file_dir = Path(__file__).resolve().parent.parent.parent / "Content" / type
