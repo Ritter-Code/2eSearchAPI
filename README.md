@@ -114,3 +114,6 @@ DuckDB: DuckDB queries Parquet files directly without a maintained server, integ
 - PyArrow / Parquet
 - Pandas
 - Orjson
+
+## Community Use Disclosure
+This project uses trademarks and/or copyrights owned by Paizo Inc., used under Paizo's Community Use Policy (paizo.com/communityuse). We are expressly prohibited from charging you to use or access this content.
