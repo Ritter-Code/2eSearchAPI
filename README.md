@@ -2,6 +2,8 @@
 
 A full ETL pipeline and REST API for Pathfinder Second Edition data sourced from FoundryVTT PF2e JSON documents. Normalizes deeply nested, inconsistently structured JSON into relational Parquet datasets and serves them via a FastAPI + DuckDB backend.
 
+**Live API:** [https://twoesearchapi.onrender.com/docs](https://twoesearchapi.onrender.com/docs)
+
 ---
 
 ## Overview
