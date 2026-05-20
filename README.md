@@ -35,7 +35,7 @@ The pipeline is fully idempotent. On each run it:
 4. Writes outputs as Parquet files batched by run timestamp
 5. Records the result of every file (IN_PROGRESS, STAGED, COMMITTED, or FAILED) to a persistent ledger
 
-Data is sourced from the FoundryVTT PF2e GitHub repository (v13-dev branch) via a sparse checkout that pulls only the `packs/pf2e/` directory.
+Data is sourced from the FoundryVTT PF2e GitHub repository (v13-dev branch) via a sparse checkout scoped to the `packs/` directory.
 
 ### Schema Normalization
 
@@ -141,10 +141,28 @@ DuckDB: DuckDB queries Parquet files directly without a maintained server, integ
 - Orjson
 - GitPython
 
+## Getting Started
+
+**API only:**
+```bash
+pip install -r requirements.txt
+uvicorn 2eDataManipulation.api.main_api:app --host 0.0.0.0 --port 8000
+```
+
+**Run the pipeline** (to re-ingest or update data from Foundry's repo):
+```bash
+pip install -r requirements.txt
+pip install -r requirements_pipeline.txt
+python 2eDataManipulation/Data_Ingest/repo_ingest.py  # pull/update Foundry data
+python 2eDataManipulation/main.py                     # extract and write parquets
+```
+
 ## Dependencies
 
-API: `requirements.txt`
-Pipeline: `requirements-Pipeline.txt`
+| File | Purpose |
+|---|---|
+| `requirements.txt` | API runtime (FastAPI, DuckDB, Pandas, etc.) |
+| `requirements_pipeline.txt` | Pipeline only (GitPython, orjson, PyArrow) |
 
 ## Community Use Disclosure
 This project uses trademarks and/or copyrights owned by Paizo Inc., used under Paizo's Community Use Policy (paizo.com/communityuse). We are expressly prohibited from charging you to use or access this content.
